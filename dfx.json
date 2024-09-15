@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "calli_backend": {
+      "main": "src/calli_backend/main.mo",
+      "type": "motoko"
+    },
+    "calli_frontend": {
+      "dependencies": [
+        "calli_backend"
+      ],
+      "source": [
+        "src/calli_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "calli_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
