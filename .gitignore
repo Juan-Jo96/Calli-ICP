@@ -1,4 +1,21 @@
-# Various IDEs and Editors
+# Dependencias
+node_modules/
+
+# Archivos de construcción
+.dfx/
+dist/
+
+# Archivos de ambiente
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db# Various IDEs and Editors
 .vscode/
 .idea/
 **/*~

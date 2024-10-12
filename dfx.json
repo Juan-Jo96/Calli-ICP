@@ -4,15 +4,47 @@
       "main": "src/calli_backend/main.mo",
       "type": "motoko"
     },
+    "autenticacion": {
+      "main": "src/autenticacion/main.mo",
+      "type": "motoko"
+    },
+    "perfiles": {
+      "main": "src/perfiles/main.mo",
+      "type": "motoko"
+    },
+    "propiedades": {
+      "main": "src/propiedades/main.mo",
+      "type": "motoko"
+    },
+    "contratos": {
+      "main": "src/contratos/main.mo",
+      "type": "motoko"
+    },
+    "mensajeria": {
+      "main": "src/mensajeria/main.mo",
+      "type": "motoko"
+    },
+    "pagos": {
+      "main": "src/pagos/main.mo",
+      "type": "motoko"
+    },
     "calli_frontend": {
       "dependencies": [
-        "calli_backend"
+        "calli_backend",
+        "autenticacion",
+        "perfiles",
+        "propiedades",
+        "contratos",
+        "mensajeria",
+        "pagos"
       ],
+      "frontend": {
+        "entrypoint": "src/calli_frontend/dist/index.html"
+      },
       "source": [
         "src/calli_frontend/dist"
       ],
-      "type": "assets",
-      "workspace": "calli_frontend"
+      "type": "assets"
     }
   },
   "defaults": {

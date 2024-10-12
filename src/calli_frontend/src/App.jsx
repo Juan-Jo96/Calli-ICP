@@ -1,30 +1,22 @@
-import { useState } from 'react';
-import { calli_backend } from 'declarations/calli_backend';
+import React from 'react';
+import Autenticacion from './components/Autenticacion';
+import Perfiles from './components/Perfiles';
+import Propiedades from './components/Propiedades';
+import Contratos from './components/Contratos';
+import Mensajeria from './components/Mensajeria';
+import Pagos from './components/Pagos';
 
 function App() {
-  const [greeting, setGreeting] = useState('');
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    const name = event.target.elements.name.value;
-    calli_backend.greet(name).then((greeting) => {
-      setGreeting(greeting);
-    });
-    return false;
-  }
-
   return (
-    <main>
-      <img src="/logo2.svg" alt="DFINITY logo" />
-      <br />
-      <br />
-      <form action="#" onSubmit={handleSubmit}>
-        <label htmlFor="name">Enter your name: &nbsp;</label>
-        <input id="name" alt="Name" type="text" />
-        <button type="submit">Click Me!</button>
-      </form>
-      <section id="greeting">{greeting}</section>
-    </main>
+    <div className="App">
+      <h1>Bienvenido a Calli</h1>
+      <Autenticacion />
+      <Perfiles />
+      <Propiedades />
+      <Contratos />
+      <Mensajeria />
+      <Pagos />
+    </div>
   );
 }
 
