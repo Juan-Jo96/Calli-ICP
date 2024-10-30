@@ -40,3 +40,6 @@ dist/
 
 # environment variables
 .env
+
+# excalidraw files
+*.excalidraw
