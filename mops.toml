@@ -1,0 +1,4 @@
+[dependencies]
+base = "0.13.2"
+map = "9.0.1"
+candb = "1.0.8"

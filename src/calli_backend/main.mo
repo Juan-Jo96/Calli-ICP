@@ -1,5 +1,6 @@
-actor {
-  public query func greet(name : Text) : async Text {
-    return "Hello, " # name # "!";
-  };
+import Types "./modules/types";
+
+//Calli backend main actor
+actor CalliBackend{
+  //Add user to waitlist
 };

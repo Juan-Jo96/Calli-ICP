@@ -1,7 +1,19 @@
 {
   "canisters": {
-    "calli_backend": {
+    "Main": {
       "main": "src/calli_backend/main.mo",
+      "type": "motoko"
+    },
+    "Index": {
+      "main": "src/calli_backend/index/Index.mo",
+      "type": "motoko"
+    },
+    "Waitlist": {
+      "main": "src/calli_backend/waitlist/WaitlistService.mo",
+      "type": "motoko"
+    },
+    "RentToOwn": {
+      "main": "src/calli_backend/rent_to_own/RentOwnService.mo",
       "type": "motoko"
     },
     "autenticacion": {
@@ -50,7 +62,7 @@
   "defaults": {
     "build": {
       "args": "",
-      "packtool": ""
+      "packtool": "mops sources"
     }
   },
   "output_env_file": ".env",
