@@ -4,16 +4,20 @@
       "main": "src/calli_backend/main.mo",
       "type": "motoko"
     },
-    "Index": {
-      "main": "src/calli_backend/index/Index.mo",
-      "type": "motoko"
-    },
-    "Waitlist": {
-      "main": "src/calli_backend/waitlist/WaitlistService.mo",
-      "type": "motoko"
-    },
     "RentToOwn": {
-      "main": "src/calli_backend/rent_to_own/RentOwnService.mo",
+      "main": "src/calli_backend/rent_to_own.mo",
+      "type": "motoko"
+    },
+    "Index": {
+      "main": "src/calli_backend/db/Index.mo",
+      "type": "motoko"
+    },
+    "WaitlistDB": {
+      "main": "src/calli_backend/db/db_Waitlist.mo",
+      "type": "motoko"
+    },
+    "RentToOwnDB": {
+      "main": "src/calli_backend/db/db_rent_to_own.mo",
       "type": "motoko"
     },
     "autenticacion": {
@@ -41,15 +45,7 @@
       "type": "motoko"
     },
     "calli_frontend": {
-      "dependencies": [
-        "calli_backend",
-        "autenticacion",
-        "perfiles",
-        "propiedades",
-        "contratos",
-        "mensajeria",
-        "pagos"
-      ],
+      "dependencies": [],
       "frontend": {
         "entrypoint": "src/calli_frontend/dist/index.html"
       },

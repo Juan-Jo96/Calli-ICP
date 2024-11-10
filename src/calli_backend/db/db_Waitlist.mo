@@ -8,7 +8,7 @@ import Entity "mo:candb/Entity";
 import Error "mo:base/Error";
 import Debug "mo:base/Debug";
 
-shared ({ caller = owner }) actor class WaitlistService({
+shared ({ caller = owner }) actor class WaitlistDB({
   partitionKey: Text;
   scalingOptions: CanDB.ScalingOptions;
   owners: ?[Principal]

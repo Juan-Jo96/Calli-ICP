@@ -7,7 +7,7 @@ import Float "mo:base/Float";
 import Option "mo:base/Option";
 import Array "mo:base/Array";
 
-shared ({ caller = owner }) actor class RentToOwnService({
+shared ({ caller = owner }) actor class RentToOwnDB({
   partitionKey: Text;
   scalingOptions: CanDB.ScalingOptions;
   owners: ?[Principal]
@@ -38,45 +38,66 @@ shared ({ caller = owner }) actor class RentToOwnService({
   };
 
   // Add rent-to-own contract
-  public shared({ caller = caller }) func addContract(contract: Types.RentToOwnContract): async Text {
+  public shared({ caller = caller }) func addContract(contract: Types.RentToOwnContract, contractID: Principal): async Text {
     let attributePairs: [(Entity.AttributeKey, Entity.AttributeValue)] = [
       ("propertyID", #text(Principal.toText(contract.propertyID))),
       ("tenant", #text(Principal.toText(contract.tenant))),
       ("landlord", #text(Principal.toText(contract.landlord))),
-      (("monthlyAmount"), #int(Float.toInt(contract.monthlyAmount))),
-      (("duration"), #int(contract.duration)),
-      (("startDate"), #text(contract.startDate))
+      ("monthlyAmount", #int(Float.toInt(contract.monthlyAmount))),
+      ("duration", #int(contract.duration)),
+      ("startDate", #text(contract.startDate))
     ];
-    let entity = { attributes = attributePairs; sk = Principal.toText(contract.propertyID) };
+    let entity = { attributes = attributePairs; sk = Principal.toText(contractID) };
     await* CanDB.put(db, entity);
     return "Contract added successfully.";
   };
 
-  // Get rent-to-own contract by property ID
-  public query func getContract(propertyId: Text): async ?Types.RentToOwnContract {
-    let entity = CanDB.get(db, { sk = propertyId });
+  // Get rent-to-own contract by contract ID
+  public query func getContract(contractID: Principal): async ?Types.RentToOwnContract {
+    let entity = CanDB.get(db, { sk = Principal.toText(contractID) });
     return Option.map(entity, func(e: Entity.Entity): Types.RentToOwnContract {
       {
-        propertyID = Principal.fromText(e.sk);
+        propertyID = Principal.fromText(switch (Entity.getAttributeMapValueForKey(e.attributes, "propertyID")) {
+          case (?value) switch (value) {
+            case (#text(t)) t;
+            case _ "";
+          };
+          case (null) "";
+        });
         tenant = Principal.fromText(switch (Entity.getAttributeMapValueForKey(e.attributes, "tenant")) {
-          case (?#text(t)) t;
-          case _ "";
+          case (?value) switch (value) {
+            case (#text(t)) t;
+            case _ "";
+          };
+          case (null) "";
         });
         landlord = Principal.fromText(switch (Entity.getAttributeMapValueForKey(e.attributes, "landlord")) {
-          case (?#text(t)) t;
-          case _ "";
+          case (?value) switch (value) {
+            case (#text(t)) t;
+            case _ "";
+          };
+          case (null) "";
         });
         monthlyAmount = switch (Entity.getAttributeMapValueForKey(e.attributes, "monthlyAmount")) {
-          case (?#int(amount)) Float.fromInt(amount);
-          case _ 0.0;
+          case (?value) switch (value) {
+            case (#int(amount)) Float.fromInt(amount);
+            case _ 0.0;
+          };
+          case (null) 0.0;
         };
         duration = switch (Entity.getAttributeMapValueForKey(e.attributes, "duration")) {
-          case (?#int(dur)) dur;
-          case _ 0;
+          case (?value) switch (value) {
+            case (#int(dur)) dur;
+            case _ 0;
+          };
+          case (null) 0;
         };
         startDate = switch (Entity.getAttributeMapValueForKey(e.attributes, "startDate")) {
-          case (?#text(date)) date;
-          case _ "";
+          case (?value) switch (value) {
+            case (#text(date)) date;
+            case _ "";
+          };
+          case (null) "";
         };
       }
     });
@@ -123,9 +144,9 @@ shared ({ caller = owner }) actor class RentToOwnService({
     return contracts;
   };
 
-  // Remove rent-to-own contract by property ID
-  public shared({ caller = caller }) func removeContract(propertyId: Text): async () {
-    await async { CanDB.delete(db, { sk = propertyId }) };
+  // Remove rent-to-own contract by contract ID
+  public shared({ caller = caller }) func removeContract(contractID: Principal): async () {
+    CanDB.delete(db, { sk = Principal.toText(contractID) });
     return ();
   };
 }
