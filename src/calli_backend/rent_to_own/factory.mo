@@ -2,10 +2,13 @@ import Principal "mo:base/Principal";
 import Debug "mo:base/Debug";
 import Text "mo:base/Text";
 import Entity "mo:candb/Entity";
-import Types "/modules/types";
+import Types "../modules/types";
 import Float "mo:base/Float";
+import Array "mo:base/Array";
 
 actor class RentToOwnFactory(dbRentToOwn: Principal) {
+    var paymentHistory: [(Text, Float)] = [];
+    var totalPaid: Float = 0.0;
 
     // Import the management canister interface
     let managementCanister: Types.ManagementCanister = actor("aaaaa-aa");
@@ -62,5 +65,47 @@ actor class RentToOwnFactory(dbRentToOwn: Principal) {
             Debug.print("Failed to create or initialize contract canister.");
             return "Error in contract creation";
         };
+    };
+
+    // Make a payment
+    public shared ({caller}) func makePayment(amount: Float): async Text {
+        // Record the payment
+        paymentHistory := Array.append(paymentHistory, [(Float.toText(amount), amount)]);
+        totalPaid += amount;
+
+        Debug.print("Payment made: " # Float.toText(amount));
+        return "Payment of " # Float.toText(amount) # " made successfully.";
+    };
+
+    // Get payment history
+    public shared ({caller}) func getPaymentHistory(contractID: Principal): async [(Text, Float)] {
+        let contractCanister = actor(Principal.toText(contractID)) : actor {
+            getPaymentHistory: () -> async [(Text, Float)];
+        };
+        return await contractCanister.getPaymentHistory();
+    };
+
+    // Terminate contract
+    public shared ({caller}) func terminateContract(contractID: Principal): async Text {
+        let contractCanister = actor(Principal.toText(contractID)) : actor {
+            terminateContract: () -> async Text;
+        };
+        return await contractCanister.terminateContract();
+    };
+
+    // Transfer ownership
+    public shared ({caller}) func transferOwnership(contractID: Principal): async Text {
+        let contractCanister = actor(Principal.toText(contractID)) : actor {
+            transferOwnership: () -> async Text;
+        };
+        return await contractCanister.transferOwnership();
+    };
+
+    // Update contract terms
+    public shared ({caller}) func updateContractTerms(contractID: Principal, newMonthlyAmount: ?Float, newDuration: ?Int): async Text {
+        let contractCanister = actor(Principal.toText(contractID)) : actor {
+            updateContractTerms: (?Float, ?Int) -> async Text;
+        };
+        return await contractCanister.updateContractTerms(newMonthlyAmount, newDuration);
     };
 };

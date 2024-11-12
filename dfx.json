@@ -4,8 +4,12 @@
       "main": "src/calli_backend/main.mo",
       "type": "motoko"
     },
-    "RentToOwn": {
-      "main": "src/calli_backend/rent_to_own.mo",
+    "RentToOwnFactory": {
+      "main": "src/calli_backend/rent_to_own/factory.mo",
+      "type": "motoko"
+    },
+    "RentToOwnContract": {
+      "main": "src/calli_backend/rent_to_own/contract.mo",
       "type": "motoko"
     },
     "Index": {

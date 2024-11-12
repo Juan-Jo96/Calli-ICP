@@ -34,4 +34,4 @@ actor Pagos {
     public func obtenerTodosPagos() : async [Pago] {
         return Iter.toArray(pagos.vals());
     };
-}
+};
