@@ -4,7 +4,6 @@ import Text "mo:base/Text";
 import Entity "mo:candb/Entity";
 import Types "../modules/types";
 import Float "mo:base/Float";
-import Option "mo:base/Option";
 import Array "mo:base/Array";
 
 actor RentToOwnContract {

@@ -45,4 +45,17 @@ module Types{
         duration: Int;
         startDate: Text;
     };
+
+    public type UserInfo = {
+        firstName: Text;
+        lastName: Text;
+        email: Text;
+        phoneNumber: Text;
+        country: Text;
+        address: Text;
+        linkedInLink: ?Text;
+        xLink: ?Text;
+        proofOfIncome: ?Blob;
+        proofOfID: ?Blob;
+    };
 };

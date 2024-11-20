@@ -4,6 +4,14 @@
       "main": "src/calli_backend/main.mo",
       "type": "motoko"
     },
+    "UserFactory": {
+      "main": "src/calli_backend/users/factory.mo",
+      "type": "motoko"
+    },
+    "User": {
+      "main": "src/calli_backend/users/user_canister.mo",
+      "type": "motoko"
+    },
     "RentToOwnFactory": {
       "main": "src/calli_backend/rent_to_own/factory.mo",
       "type": "motoko"
