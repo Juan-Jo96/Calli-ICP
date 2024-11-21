@@ -1,55 +1,112 @@
-import Principal "mo:base/Principal";
-import Debug "mo:base/Debug";
-import Text "mo:base/Text";
-import Entity "mo:candb/Entity";
-import Types "../modules/types";
-import Float "mo:base/Float";
 import Array "mo:base/Array";
+import Types "../modules/types";
+import Time "mo:base/Time";
+import Text "mo:base/Text";
 
 actor RentToOwnContract {
 
-    stable var paymentHistory: [(Text, Float)] = [];
-    stable var totalPaid: Float = 0.0;
-
-    // Initialize the contract with the required attributes
-    public shared ({caller}) func initContract(attributePairs: [(Entity.AttributeKey, Entity.AttributeValue)]): async () {
-        // Initialize contract attributes (e.g., propertyID, tenant, landlord, etc.)
-        let attributeList: [(Entity.AttributeKey, Entity.AttributeValue)] = attributePairs;
+    private var contractInfo: Types.RentToOwnContract = {
+        contractId = "";
+        propertyId = "";
+        youngLatinoId = "";
+        investorId = "";
+        monthlyPayment = 0;
+        contractDurationMonths = 0;
+        startDate = 0;
+        paymentDueDay = 0;
     };
 
-    // Make a payment
-    public shared ({caller}) func makePayment(amount: Float): async Text {
-        // Record the payment
-        paymentHistory := Array.append(paymentHistory, [(Float.toText(amount), amount)]);
-        totalPaid += amount;
+    public func initContract(contractId: Text, propertyId: Text, youngLatinoId: Text, investorId: Text, monthlyPayment: Nat, contractDurationMonths: Nat, startDate: Int, paymentDueDay: Nat) {
+        // Validation checks for input parameters
+        assert Text.size(contractId) > 0 and Text.size(propertyId) > 0 and Text.size(youngLatinoId) > 0 and Text.size(investorId) > 0;
+        assert monthlyPayment > 0 and contractDurationMonths > 0 and startDate > 0 and paymentDueDay > 0;
 
-        Debug.print("Payment made: " # Float.toText(amount));
-        return "Payment of " # Float.toText(amount) # " made successfully.";
+        contractInfo := {
+            contractId = contractId;
+            propertyId = propertyId;
+            youngLatinoId = youngLatinoId;
+            investorId = investorId;
+            monthlyPayment = monthlyPayment;
+            contractDurationMonths = contractDurationMonths;
+            startDate = startDate;
+            paymentDueDay = paymentDueDay;
+        };
     };
 
-    // Get payment history
-    public query func getPaymentHistory(): async [(Text, Float)] {
-        return paymentHistory;
+    public query func getContractDetails() : async Types.RentToOwnContract {
+        return contractInfo;
     };
 
-    // Terminate contract
-    public shared ({caller}) func terminateContract(): async Text {
-        // Logic to terminate the contract
-        Debug.print("Contract terminated.");
-        return "Contract terminated successfully.";
+    private var payments: [PaymentRecord] = [];
+
+    private type PaymentRecord = {
+        amount: Nat;
+        timestamp: Int;
+        status: {#completed; #failed};
     };
 
-    // Transfer ownership
-    public shared ({caller}) func transferOwnership(): async Text {
-        // Logic to transfer ownership
-        Debug.print("Ownership transferred.");
-        return "Ownership transferred successfully.";
+    public func processPayment(amount: Nat, paymentDate: Text) : async Bool {
+        if (amount < contractInfo.monthlyPayment) {
+            let failedPayment = {
+                amount = amount;
+                timestamp = Time.now();
+                paymentDate = paymentDate;
+                status = #failed;
+            };
+            payments := Array.append(payments, [failedPayment]);
+            return false; // Payment amount is less than required monthly payment
+        };
+
+        if (amount == contractInfo.monthlyPayment) {
+            let successPayment = {
+                amount = amount;
+                timestamp = Time.now();
+                paymentDate = paymentDate;
+                status = #completed;
+            };
+            payments := Array.append(payments, [successPayment]);
+            return true;
+        };
+
+        if (amount > contractInfo.monthlyPayment) {
+            let failedPayment = {
+                amount = amount;
+                timestamp = Time.now();
+                paymentDate = paymentDate;
+                status = #failed;
+            };
+            payments := Array.append(payments, [failedPayment]);
+            return false; // Payment amount exceeds monthly payment
+        } else {
+            let failedPayment = {
+                amount = amount;
+                timestamp = Time.now();
+                paymentDate = paymentDate;
+                status = #failed;
+            };
+            payments := Array.append(payments, [failedPayment]);
+            return false; // Payment amount is less than monthly payment
+        };
     };
 
-    // Update contract terms
-    public shared ({caller}) func updateContractTerms(newMonthlyAmount: ?Float, newDuration: ?Int): async Text {
-        // Logic to update contract terms
-        Debug.print("Contract terms updated.");
-        return "Contract terms updated successfully.";
+    public query func getPaymentHistory() : async [PaymentRecord] {
+        return payments;
     };
-}
+
+    public func validateCompliance() : async Bool {
+        if (payments.size() < 3) {
+            return true; // Not enough payment history to determine non-compliance
+        };
+    
+        let lastThreePayments = Array.subArray(
+            payments, 
+            payments.size() - 3, 
+            3
+        );
+
+        let successfulPayments = Array.filter<PaymentRecord>(lastThreePayments, func (p : PaymentRecord) : Bool { p.status == #completed }).size();
+
+        // Check if at least two out of the last three payments were successful
+        return successfulPayments >= 2;
+    };
+};

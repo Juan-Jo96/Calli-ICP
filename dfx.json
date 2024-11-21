@@ -2,19 +2,36 @@
   "canisters": {
     "Main": {
       "main": "src/calli_backend/main.mo",
+      "type": "motoko",
+      "dependencies": [
+        "YoungLatinos",
+        "Investors",
+        "Properties",
+        "RentToOwnContract",
+        "Index",
+        "WaitlistDB",
+        "RentToOwnDB"
+      ]
+    },
+    "YoungLatinos": {
+      "main": "src/calli_backend/young_latinos.mo",
       "type": "motoko"
     },
-    "UserFactory": {
-      "main": "src/calli_backend/users/factory.mo",
+    "Investors": {
+      "main": "src/calli_backend/investors.mo",
       "type": "motoko"
     },
-    "User": {
-      "main": "src/calli_backend/users/user_canister.mo",
+    "Properties": {
+      "main": "src/calli_backend/properties.mo",
       "type": "motoko"
     },
     "RentToOwnFactory": {
       "main": "src/calli_backend/rent_to_own/factory.mo",
-      "type": "motoko"
+      "type": "motoko",
+      "dependencies": [
+        "Main",
+        "RentToOwnContract"
+      ]
     },
     "RentToOwnContract": {
       "main": "src/calli_backend/rent_to_own/contract.mo",

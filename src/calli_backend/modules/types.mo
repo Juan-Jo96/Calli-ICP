@@ -1,14 +1,54 @@
-//Types for CalliBackend module
+// Types for CalliBackend module
 import Principal "mo:base/Principal";
 import Nat "mo:base/Nat";
 import Blob "mo:base/Blob";
-module Types{
+
+module Types {
+    // User information type
+    public type YoungLatino = {
+        id: Text;
+        name: Text;
+        email: Text;
+        principal: Principal;
+    };
+
+    // Property information type
+    public type Property = {
+        id: Text;
+        address: Text;
+        price: Nat;
+        description: Text;
+        owner: Principal;
+    };
+
+    // Investor information type
+    public type Investor = {
+        id: Text;
+        name: Text;
+        email: Text;
+        principal: Principal;
+    };
+
+    // Rent-to-Own Contract type
+    public type RentToOwnContract = {
+        contractId: Text;
+        propertyId: Text; // References Property.id from properties.mo
+        youngLatinoId: Text; // References YoungLatino.id from young_latinos.mo 
+        investorId: Text; // References Investor.id from investors.mo
+        monthlyPayment: Nat;
+        contractDurationMonths: Nat;
+        startDate: Int; // Timestamp in nanoseconds
+        paymentDueDay: Nat; // Day of month when payment is due (1-31)
+    };
+
+    // Waitlist user type
     public type WaitlistUser = {
         name: Text;
         email: Text;
         country: Text;
-        };
-    // Define the management canister interface
+    };
+
+    // Management canister interface types
     public type CanisterSettings = {
         controller: ?Principal;
         compute_allocation: ?Nat;
@@ -37,15 +77,7 @@ module Types{
         start_canister: (CanisterIdRecord) -> ();
     };
 
-    public type RentToOwnContract = {
-        propertyID: Principal;
-        tenant: Principal;
-        landlord: Principal;
-        monthlyAmount: Float;
-        duration: Int;
-        startDate: Text;
-    };
-
+    // Extended user information type for detailed profiles
     public type UserInfo = {
         firstName: Text;
         lastName: Text;

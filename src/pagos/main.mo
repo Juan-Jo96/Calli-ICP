@@ -1,9 +1,7 @@
 import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import HashMap "mo:base/HashMap";
-import Array "mo:base/Array";
 import Iter "mo:base/Iter";
-import Error "mo:base/Error";
 
 actor Pagos {
     type Pago = {

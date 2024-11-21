@@ -1,30 +1,28 @@
-import Principal "mo:base/Principal";
-import Text "mo:base/Text";
 import HashMap "mo:base/HashMap";
-import Array "mo:base/Array";
-import Iter "mo:base/Iter";
+import Debug "mo:base/Debug";
+import Types "modules/types";
+import Text "mo:base/Text";
+import Buffer "mo:base/Buffer";
 
-actor Propiedades {
-    type Propiedad = {
-        id: Text;
-        direccion: Text;
-        precio: Nat;
-        descripcion: Text;
-        propietario: Principal;
+actor Properties {
+
+    private var properties: HashMap.HashMap<Text, Types.Property> = HashMap.HashMap<Text, Types.Property>(10, Text.equal, Text.hash);
+
+    public func addProperty(prop: Types.Property): async Text {
+        properties.put(prop.id, prop);
+        Debug.print("Property added: " # prop.id);
+        return "Property added successfully with ID: " # prop.id;
     };
 
-    private let propiedades = HashMap.HashMap<Text, Propiedad>(10, Text.equal, Text.hash);
-
-    public shared(msg) func listarPropiedad(prop : Propiedad) : async Text {
-        propiedades.put(prop.id, prop);
-        return "Propiedad listada con éxito";
+    public func getProperty(id: Text): async ?Types.Property {
+        return properties.get(id);
     };
-
-    public func obtenerPropiedad(id : Text) : async ?Propiedad {
-        return propiedades.get(id);
+    public func getAllProperties(): async [Types.Property] {
+        let entries = properties.entries();
+        let array = Buffer.Buffer<Types.Property>(properties.size());
+        for ((_, property) in entries) {
+            array.add(property);
+        };
+        return Buffer.toArray(array);
     };
-
-    public func obtenerTodasPropiedades() : async [Propiedad] {
-        return Array.map(Iter.toArray(propiedades.vals()), func (x: Propiedad) : Propiedad { x });
-    };
-}
+};

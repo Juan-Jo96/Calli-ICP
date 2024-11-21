@@ -5,13 +5,12 @@ import Types "../modules/types";
 import Option "mo:base/Option";
 import Array "mo:base/Array";
 import Entity "mo:candb/Entity";
-import Error "mo:base/Error";
 import Debug "mo:base/Debug";
 
 shared ({ caller = owner }) actor class WaitlistDB({
   partitionKey: Text;
   scalingOptions: CanDB.ScalingOptions;
-  owners: ?[Principal]
+  _owners: ?[Principal]
 }) {
 
   /// @required (may wrap, but must be present in some form in the canister)
@@ -39,7 +38,7 @@ shared ({ caller = owner }) actor class WaitlistDB({
   };
 
   // Add user to waitlist
-  public shared({ caller = caller }) func addUserWaitlist(user: Types.WaitlistUser): async Text {
+  public shared({ caller = _caller }) func addUserWaitlist(user: Types.WaitlistUser): async Text {
     let entry = {
       sk = user.email;
       attributes = [
@@ -144,7 +143,7 @@ public query func getAllUsers(): async [Types.WaitlistUser] {
 };
 
   // Remove user from waitlist by email
-  public shared({ caller = caller }) func removeUserWaitlist(email: Text): async () {
+  public shared({ caller = _caller }) func removeUserWaitlist(email: Text): async () {
     await async { CanDB.delete(db, {sk = email}) };
     return ();
   };

@@ -1,20 +1,15 @@
 import Principal "mo:base/Principal";
-import CA "mo:candb/CanisterActions";
 import CanDB "mo:candb/CanDB";
-import Entity "mo:candb/Entity";
 import Types "../modules/types";
-import Float "mo:base/Float";
-import Option "mo:base/Option";
 import Array "mo:base/Array";
 
 shared ({ caller = owner }) actor class RentToOwnDB({
   partitionKey: Text;
   scalingOptions: CanDB.ScalingOptions;
-  owners: ?[Principal]
+  _owners: ?[Principal]
 }) {
+  stable var contractCanisters: [Principal] = [];
 
-  /// @required (may wrap, but must be present in some form in the canister)
-  ///
   /// Initialize CanDB
   stable let db = CanDB.init({
     pk = partitionKey;
@@ -22,131 +17,29 @@ shared ({ caller = owner }) actor class RentToOwnDB({
     btreeOrder = null;
   });
 
-  /// @recommended (not required) public API
-  public query func getPK(): async Text { db.pk };
+  public query func getPK(): async Text { return db.pk; };
 
-  /// @required public API (Do not delete or change)
   public query func skExists(sk: Text): async Bool { 
-    CanDB.skExists(db, sk);
+    return CanDB.skExists(db, sk);
   };
-
-  /// @required public API (Do not delete or change)
-  public shared({ caller = caller }) func transferCycles(): async () {
+  public shared({ caller }) func registerContractCanister(canisterId: Principal): async () {
     if (caller == owner) {
-      await CA.transferCycles(caller);
+      contractCanisters := Array.append(contractCanisters, [canisterId]);
     };
   };
 
-  // Add rent-to-own contract
-  public shared({ caller = caller }) func addContract(contract: Types.RentToOwnContract, contractID: Principal): async Text {
-    let attributePairs: [(Entity.AttributeKey, Entity.AttributeValue)] = [
-      ("propertyID", #text(Principal.toText(contract.propertyID))),
-      ("tenant", #text(Principal.toText(contract.tenant))),
-      ("landlord", #text(Principal.toText(contract.landlord))),
-      ("monthlyAmount", #int(Float.toInt(contract.monthlyAmount))),
-      ("duration", #int(contract.duration)),
-      ("startDate", #text(contract.startDate))
-    ];
-    let entity = { attributes = attributePairs; sk = Principal.toText(contractID) };
-    await* CanDB.put(db, entity);
-    return "Contract added successfully.";
+  public func getContract(canisterId: Principal, sk: Text): async ?Types.RentToOwnContract {
+    // Assuming each contract canister exposes a `getContract` method
+    let contractCanister = actor(Principal.toText(canisterId)) : actor { getContract: (Text) -> async ?Types.RentToOwnContract };
+    await contractCanister.getContract(sk);
   };
-
-  // Get rent-to-own contract by contract ID
-  public query func getContract(contractID: Principal): async ?Types.RentToOwnContract {
-    let entity = CanDB.get(db, { sk = Principal.toText(contractID) });
-    return Option.map(entity, func(e: Entity.Entity): Types.RentToOwnContract {
-      {
-        propertyID = Principal.fromText(switch (Entity.getAttributeMapValueForKey(e.attributes, "propertyID")) {
-          case (?value) switch (value) {
-            case (#text(t)) t;
-            case _ "";
-          };
-          case (null) "";
-        });
-        tenant = Principal.fromText(switch (Entity.getAttributeMapValueForKey(e.attributes, "tenant")) {
-          case (?value) switch (value) {
-            case (#text(t)) t;
-            case _ "";
-          };
-          case (null) "";
-        });
-        landlord = Principal.fromText(switch (Entity.getAttributeMapValueForKey(e.attributes, "landlord")) {
-          case (?value) switch (value) {
-            case (#text(t)) t;
-            case _ "";
-          };
-          case (null) "";
-        });
-        monthlyAmount = switch (Entity.getAttributeMapValueForKey(e.attributes, "monthlyAmount")) {
-          case (?value) switch (value) {
-            case (#int(amount)) Float.fromInt(amount);
-            case _ 0.0;
-          };
-          case (null) 0.0;
-        };
-        duration = switch (Entity.getAttributeMapValueForKey(e.attributes, "duration")) {
-          case (?value) switch (value) {
-            case (#int(dur)) dur;
-            case _ 0;
-          };
-          case (null) 0;
-        };
-        startDate = switch (Entity.getAttributeMapValueForKey(e.attributes, "startDate")) {
-          case (?value) switch (value) {
-            case (#text(date)) date;
-            case _ "";
-          };
-          case (null) "";
-        };
-      }
-    });
-  };
-
-  // Get all rent-to-own contracts
-  public query func getAllContracts(): async [Types.RentToOwnContract] {
-    let scanResult = CanDB.scan(db, { 
-      limit = 999999; 
-      skLowerBound = ""; 
-      skUpperBound = "ZZZZZZZZZZ"; 
-      ascending = ?true 
-    });
-    var contracts: [Types.RentToOwnContract] = [];
-    let iter = scanResult.entities.vals();
-    var next = iter.next();
-    while (Option.isSome(next)) {
-      let e = Option.get(next, { pk = ""; sk = ""; attributes = Entity.createAttributeMapFromKVPairs([]) });
-      contracts := Array.append<Types.RentToOwnContract>(contracts, [{
-        propertyID = Principal.fromText(e.sk);
-        tenant = Principal.fromText(switch (Entity.getAttributeMapValueForKey(e.attributes, "tenant")) {
-          case (?#text(t)) t;
-          case _ "";
-        });
-        landlord = Principal.fromText(switch (Entity.getAttributeMapValueForKey(e.attributes, "landlord")) {
-          case (?#text(t)) t;
-          case _ "";
-        });
-        monthlyAmount = switch (Entity.getAttributeMapValueForKey(e.attributes, "monthlyAmount")) {
-          case (?#int(amount)) Float.fromInt(amount);
-          case _ 0.0;
-        };
-        duration = switch (Entity.getAttributeMapValueForKey(e.attributes, "duration")) {
-          case (?#int(dur)) dur;
-          case _ 0;
-        };
-        startDate = switch (Entity.getAttributeMapValueForKey(e.attributes, "startDate")) {
-          case (?#text(date)) date;
-          case _ "";
-        };
-      }]);
-      next := iter.next();
+  public func getAllContracts(): async [Types.RentToOwnContract] {
+    var flattenedContracts : [Types.RentToOwnContract] = [];
+    for (canisterId in contractCanisters.vals()) {
+      let contractCanister = actor(Principal.toText(canisterId)) : actor { getAllContracts: () -> async [Types.RentToOwnContract] };
+      let contracts = await contractCanister.getAllContracts();
+      flattenedContracts := Array.append(flattenedContracts, contracts);
     };
-    return contracts;
+    return flattenedContracts;
   };
-
-  // Remove rent-to-own contract by contract ID
-  public shared({ caller = caller }) func removeContract(contractID: Principal): async () {
-    CanDB.delete(db, { sk = Principal.toText(contractID) });
-    return ();
-  };
-}
+};
