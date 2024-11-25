@@ -29,7 +29,6 @@
       "main": "src/calli_backend/rent_to_own/factory.mo",
       "type": "motoko",
       "dependencies": [
-        "Main",
         "RentToOwnContract"
       ]
     },
@@ -47,22 +46,6 @@
     },
     "RentToOwnDB": {
       "main": "src/calli_backend/db/db_rent_to_own.mo",
-      "type": "motoko"
-    },
-    "autenticacion": {
-      "main": "src/autenticacion/main.mo",
-      "type": "motoko"
-    },
-    "perfiles": {
-      "main": "src/perfiles/main.mo",
-      "type": "motoko"
-    },
-    "propiedades": {
-      "main": "src/propiedades/main.mo",
-      "type": "motoko"
-    },
-    "contratos": {
-      "main": "src/contratos/main.mo",
       "type": "motoko"
     },
     "mensajeria": {

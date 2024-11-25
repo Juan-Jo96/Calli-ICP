@@ -6,19 +6,42 @@ import Blob "mo:base/Blob";
 module Types {
     // User information type
     public type YoungLatino = {
-        id: Text;
+        id: Principal; //Principal of the young Latino
         name: Text;
+        age: Nat; // Field for age
+        verifiedProfile: Bool; // Field for verified profile status
+        xLink: ?Text; // Field for link to X account
+        linkedInLink: ?Text; // Field for link to LinkedIn account
+        aboutMe: Text; // Field for a paragraph about the young Latino
+        interests: [Text]; // Field for list of interests/tags
         email: Text;
-        principal: Principal;
+        phoneNumber: Text; // Field for phone number including dial code
+        location: Text; // Field for location
+        creditScore: Nat; // Field for credit score
+        monthlyIncome: Nat; // Field for monthly income
+        monthlyPaymentCapacity: Nat; // Field for monthly payment capacity
+        totalSavings: Nat; // Field for total savings
+        legalInformation: Bool; // Field for legal information verification
+        backgroundCheck: Bool; // Field for background check status
+        creditReport: Bool; // Field for credit report status
+        identityVerification: Bool; // Field for identity verification status
+        propertyOwnershipDocuments: Bool; // Field for property ownership documents verification
     };
 
     // Property information type
     public type Property = {
-        id: Text;
-        address: Text;
-        price: Nat;
-        description: Text;
-        owner: Principal;
+        propertyId: Text; // Unique identifier for the property
+        requestorPrincipal: Principal; // Principal of the young Latino requesting the property
+        location: Text; // City and country
+        address: Text; // Detailed address
+        price: Nat; // Price in USD
+        historicAnnualAppreciation: Float; // Annual appreciation percentage
+        brickValue: Nat; // Value of each brick (1% of property value)
+        brickAPR: Float; // Annual percentage rate for bricks
+        monthlyRentToOwnPayment: Nat; // Monthly payment for rent-to-own
+        propertyDetails: Text; // Description of property features
+        propertyImages: [Text]; // Array of image URLs
+        propertyLink: Text; // Link to online listing
     };
 
     // Investor information type
@@ -31,10 +54,10 @@ module Types {
 
     // Rent-to-Own Contract type
     public type RentToOwnContract = {
-        contractId: Text;
+        contractId: Principal;
         propertyId: Text; // References Property.id from properties.mo
-        youngLatinoId: Text; // References YoungLatino.id from young_latinos.mo 
-        investorId: Text; // References Investor.id from investors.mo
+        youngLatinoId: Principal; // References YoungLatino.id from young_latinos.mo 
+        investorId: Principal; // References Investor.id from investors.mo
         monthlyPayment: Nat;
         contractDurationMonths: Nat;
         startDate: Int; // Timestamp in nanoseconds

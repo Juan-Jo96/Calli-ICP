@@ -1,23 +1,27 @@
 import Principal "mo:base/Principal";
 import Debug "mo:base/Debug";
 import Array "mo:base/Array";
-import Main "canister:Main";
 
-actor class RentToOwnFactory(_dbRentToOwn: Principal, selfPrincipal: Principal, _owner: Principal) {
+actor class RentToOwnFactory(_dbRentToOwn: Principal, selfPrincipal: Principal, _owner: Principal, mainCanister: Principal) {
+    type MainCanister = actor {
+        prepareAndValidateRentToOwnContract: (Text, Text, Text) -> async { validation: Principal; additionalData: Text; };
+    };
+
     private var createdCanisters: [Principal] = [];
 
     public shared ({caller = _owner}) func createRentToOwnContract(
-        user: Text, 
-        property: Text, 
-        investor: Text, 
+        youngLatinoId: Principal, 
+        propertyId: Text, 
+        investorId: Principal, 
         paymentAmount: Nat, 
         startDate: Int, 
         contractDuration: Nat, 
         interestRate: Float
     ): async Principal {
-        // First, validate the details by calling the Main canister and getting validating existing data
-        let validation = await Main.prepareAndValidateRentToOwnContract(user, property, investor);
-        if (validation != Principal.fromText("aaaaa-aa")) {
+        // First, validate the details by calling the Main canister and validating existing data
+        let mainActor = actor(Principal.toText(mainCanister)) : MainCanister;
+        let result = await mainActor.prepareAndValidateRentToOwnContract(Principal.toText(youngLatinoId), propertyId, Principal.toText(investorId));
+        if (result.validation == Principal.fromText("aaaaa-aa")) {
             let settings = {
                 controllers = ?[selfPrincipal];
                 memory_allocation = null;
@@ -36,8 +40,8 @@ actor class RentToOwnFactory(_dbRentToOwn: Principal, selfPrincipal: Principal, 
             let contractCanister = actor(Principal.toText(newCanisterId.canister_id)) : actor {
                 initContract: (Text, Text, Text, Nat, Int, Nat, Float) -> async ();
             };
-            await contractCanister.initContract(user, property, investor, paymentAmount, startDate, contractDuration, interestRate);
-            Debug.print("Contract created for User: " # user # ", Property: " # property # ", Investor: " # investor);
+            await contractCanister.initContract(Principal.toText(youngLatinoId), propertyId, Principal.toText(investorId), paymentAmount, startDate, contractDuration, interestRate);
+            Debug.print("Contract created for User: " # Principal.toText(youngLatinoId) # ", Property: " # propertyId # ", Investor: " # Principal.toText(investorId));
             createdCanisters := Array.append(createdCanisters, [newCanisterId.canister_id]);
             let dbCanister = actor "db-canister-id" : actor {
                 registerContractCanister: (Principal) -> async ();
@@ -51,5 +55,5 @@ actor class RentToOwnFactory(_dbRentToOwn: Principal, selfPrincipal: Principal, 
 
     public query func listCreatedCanisters() : async [Principal] {
         return createdCanisters;
-    }
+    };
 };

@@ -1,64 +1,76 @@
-import YoungLatinos "canister:YoungLatinos";
-import Properties "canister:Properties";
-import Investors "canister:Investors";
 import Principal "mo:base/Principal";
+import Types "./modules/types";
+
 actor Main {
-    public func getYoungLatinoDetails(YoungLatinoId: Text) : async {email : Text; id : Text; name : Text; principal : Principal} {
-        let result = await YoungLatinos.getYongLatino(YoungLatinoId);
-        switch (result) {
-            case (?youngLatino) { return youngLatino };
-            case null { return { 
-                email = "";
-                id = "";
-                name = "";
-                principal = Principal.fromText("aaaaa-aa"); 
-            }};
-        }
+    // Define references to other canisters
+    let youngLatinosCanister: actor { addYoungLatino: Types.YoungLatino -> async Text; getYoungLatinoDetails: Text -> async ?Types.YoungLatino } = actor "young-latinos-canister-id";
+    let investorsCanister: actor { addInvestor: Types.Investor -> async Text; getInvestorDetails: Text -> async ?Types.Investor } = actor "investors-canister-id";
+    let propertiesCanister: actor { listProperty: Types.Property -> async Text; getPropertyDetails: Text -> async ?Types.Property } = actor "properties-canister-id";
+    let rentToOwnFactoryCanister: actor {
+        createRentToOwnContract: Types.RentToOwnContract -> async Principal;
+        checkUserContract: Text -> async ?Principal;
+    } = actor "renttoownfactory-canister-id";
+
+    public shared(_) func registerYoungLatino(youngLatino: Types.YoungLatino): async Text {
+        return await youngLatinosCanister.addYoungLatino(youngLatino);
     };
 
-    public func getPropertyDetails(propertyId: Text) : async ?Properties.Property {
-        try {
-            let result = await Properties.getProperty(propertyId);
-            switch (result) {
-                case (?property) { return ?property };
-                case null { return null };
-            }
-        } catch (error) {
-            return null;
-        }
+    public shared(_) func registerInvestor(investor: Types.Investor): async Text {
+        return await investorsCanister.addInvestor(investor);
     };
 
-    public func getInvestorDetails(investorId: Text) : async ?Investors.Investor {
-        try {
-            let result = await Investors.getInvestor(investorId);
-            switch (result) {
-                case (?investor) { return ?investor };
-                case null { return null };
-            }
-        } catch (error) {
-            return null;
-        }
+    public shared(_) func addProperty(property: Types.Property): async Text {
+        return await propertiesCanister.listProperty(property);
     };
 
-    public func prepareAndValidateRentToOwnContract(YoungLatinoId: Text, propertyId: Text, investorId: Text): async Principal {
-        try {
-            let youngLatino = await getYoungLatinoDetails(YoungLatinoId);
-            let propertyDetails = await getPropertyDetails(propertyId);
-            let investorDetails = await getInvestorDetails(investorId);
+    public shared(_) func getYoungLatinoInfo(id: Text): async ?Types.YoungLatino {
+        return await youngLatinosCanister.getYoungLatinoDetails(id);
+    };
 
-            // Validate that all required data exists
-            switch (propertyDetails, investorDetails) {
-                case (?p, ?i) {
-                    // Here we would create the contract
-                    // For now returning a placeholder principal since RentToOwnFactory is not defined
-                    return Principal.fromText("aaaaa-aa");
-                };
-                case (_, _) {
-                    return Principal.fromText("aaaaa-aa"); // Return default principal instead of throwing error
-                };
-            };
-        } catch (error) {
-            return Principal.fromText("aaaaa-aa"); // Return default principal instead of throwing error
+    public shared(_) func getPropertyInfo(propertyId: Text): async ?Types.Property {
+        return await propertiesCanister.getPropertyDetails(propertyId);
+    };
+
+    public shared(_) func getInvestorInfo(investorId: Text): async ?Types.Investor {
+        return await investorsCanister.getInvestorDetails(investorId);
+    };
+
+    //Function to validate contract conditions are met before deploying the contract
+    private func prepareAndValidateRentToOwnContract(youngLatinoId: Principal, propertyId: Text, investorId: Principal): async Principal {
+        // Check if the YoungLatino exists
+        let youngLatino = await youngLatinosCanister.getYoungLatinoDetails(Principal.toText(youngLatinoId));
+        if (youngLatino == null) {
+            return Principal.fromText("validation-failed-principal-id"); // YoungLatino does not exist
+        };
+
+        // Check if the property exists
+        let propertyDetails = await propertiesCanister.getPropertyDetails(propertyId);
+        if (propertyDetails == null) {
+            return Principal.fromText("validation-failed-principal-id"); // Property does not exist
+        };
+
+        // Check if the investor exists
+        let investorDetails = await investorsCanister.getInvestorDetails(Principal.toText(investorId));
+        if (investorDetails == null) {
+            return Principal.fromText("validation-failed-principal-id"); // Investor does not exist
+        };
+
+        // Validate that the user's principal is not linked to another contract
+        let existingContract = await rentToOwnFactoryCanister.checkUserContract(Principal.toText(youngLatinoId));
+        if (existingContract != null) {
+            return Principal.fromText("validation-failed-principal-id"); // User is already linked to a contract
+        };
+
+        // If all checks pass, return a success principal
+        return Principal.fromText("aaaaa-aa");
+    };
+
+    public shared(_) func validateAndDeployContract(contract: Types.RentToOwnContract): async Principal {
+        let validation = await prepareAndValidateRentToOwnContract(contract.youngLatinoId, contract.propertyId, contract.investorId);
+        if (validation == Principal.fromText("aaaaa-aa")) {
+            return await rentToOwnFactoryCanister.createRentToOwnContract(contract);
+        } else {
+            return Principal.fromText("validation-failed-principal-id");
         }
     };
 };

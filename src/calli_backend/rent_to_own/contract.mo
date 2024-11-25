@@ -2,23 +2,23 @@ import Array "mo:base/Array";
 import Types "../modules/types";
 import Time "mo:base/Time";
 import Text "mo:base/Text";
+import Principal "mo:base/Principal";
 
 actor RentToOwnContract {
-
     private var contractInfo: Types.RentToOwnContract = {
-        contractId = "";
+        contractId = Principal.fromText("");
         propertyId = "";
-        youngLatinoId = "";
-        investorId = "";
+        youngLatinoId = Principal.fromText("");
+        investorId = Principal.fromText("");
         monthlyPayment = 0;
         contractDurationMonths = 0;
         startDate = 0;
         paymentDueDay = 0;
     };
 
-    public func initContract(contractId: Text, propertyId: Text, youngLatinoId: Text, investorId: Text, monthlyPayment: Nat, contractDurationMonths: Nat, startDate: Int, paymentDueDay: Nat) {
+    public func initContract(contractId: Principal, propertyId: Text, youngLatinoId: Principal, investorId: Principal, monthlyPayment: Nat, contractDurationMonths: Nat, startDate: Int, paymentDueDay: Nat) {
         // Validation checks for input parameters
-        assert Text.size(contractId) > 0 and Text.size(propertyId) > 0 and Text.size(youngLatinoId) > 0 and Text.size(investorId) > 0;
+        assert Text.size(Principal.toText(contractId)) > 0 and Text.size(propertyId) > 0 and Text.size(Principal.toText(youngLatinoId)) > 0 and Text.size(Principal.toText(investorId)) > 0;
         assert monthlyPayment > 0 and contractDurationMonths > 0 and startDate > 0 and paymentDueDay > 0;
 
         contractInfo := {
