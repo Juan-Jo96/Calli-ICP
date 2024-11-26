@@ -7,7 +7,10 @@ import Buffer "mo:base/Buffer";
 import Debug "mo:base/Debug";
 
 actor YoungLatinos {
+    //Map to store young Latinos by their principal ID
     private var youngLatinosMap: HashMap.HashMap<Text, Types.YoungLatino> = HashMap.HashMap<Text, Types.YoungLatino>(10, Text.equal, Text.hash);
+    
+    //Add Young Latino to the system if they are not already registered by their principal ID
     public shared(msg) func addYoungLatino(youngLatino: Types.YoungLatino): async Text {
         let callerPrincipal = Principal.toText(msg.caller);
         let existingRecord = youngLatinosMap.get(callerPrincipal);
@@ -50,10 +53,14 @@ actor YoungLatinos {
             };
         };
     };
-    public shared(msg) func getYoungLatino(): async ?Types.YoungLatino {
-        let callerPrincipal = msg.caller;
-        return youngLatinosMap.get(Principal.toText(callerPrincipal));
+
+    // Get Young Latino profile settings by principal ID
+    public shared(_) func getYoungLatino(youngLatinoId: Principal): async ?Types.YoungLatino {
+        let youngLatinoIdText = Principal.toText(youngLatinoId);
+        return youngLatinosMap.get(youngLatinoIdText);
     };
+
+    //Get all Young Latinos registered in the system
     public shared(_) func getAllYoungLatinos(): async [Types.YoungLatino] {
         let entries = youngLatinosMap.entries();
         let array = Buffer.Buffer<Types.YoungLatino>(youngLatinosMap.size());
@@ -62,7 +69,7 @@ actor YoungLatinos {
         };
         return Buffer.toArray(array);
     };
-
+    //Update Young Latino profile settings (only if the caller is the young Latino themselves)
     public shared(msg) func updateYoungLatino(updatedLatino: Types.YoungLatino): async Text {
         let callerPrincipal = Principal.toText(msg.caller);
         let maybeExistingRecord = youngLatinosMap.get(callerPrincipal);

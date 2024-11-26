@@ -46,10 +46,19 @@ module Types {
 
     // Investor information type
     public type Investor = {
-        id: Text;
+        investorId: Principal;
         name: Text;
         email: Text;
-        principal: Principal;
+        phoneNumber: Text;
+        address: Text;
+        linkedInLink: ?Text;
+        xLink: ?Text;
+        nationality: Text;
+        occupation: Text;
+        accreditedInvestor: Bool;
+        identityVerification: Bool;
+        proofOfAddress: Bool;
+        proofOfIncome: Bool;
     };
 
     // Rent-to-Own Contract type
@@ -62,6 +71,7 @@ module Types {
         contractDurationMonths: Nat;
         startDate: Int; // Timestamp in nanoseconds
         paymentDueDay: Nat; // Day of month when payment is due (1-31)
+        active: Bool;
     };
 
     // Waitlist user type

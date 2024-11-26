@@ -4,6 +4,7 @@ import HashMap "mo:base/HashMap";
 import Text "mo:base/Text";
 import Types "./modules/types";
 import Debug "mo:base/Debug";
+import Buffer "mo:base/Buffer";
 
 actor Properties {
     private var propertiesMap: HashMap.HashMap<Text, Types.Property> = HashMap.HashMap<Text, Types.Property>(10, Text.equal, Text.hash);
@@ -17,7 +18,7 @@ actor Properties {
                 // No existing property, proceed to add a new one
                 let propertyRecord = {
                     propertyId = property.propertyId;
-                    requestorPrincipal = msg.caller;
+                    requestorPrincipal = msg.caller; //Young Latino Principal ID who is listing the property
                     address = property.address;
                     brickAPR = property.brickAPR;
                     brickValue = property.brickValue;
@@ -63,6 +64,22 @@ actor Properties {
     public shared(msg) func getProperty(): async ?Types.Property {
         let callerPrincipal = Principal.toText(msg.caller);
         return propertiesMap.get(callerPrincipal);
+    };
+
+    // Function to get a property by the requestor principal ID (Young Latino)
+    public shared(_) func getPropertyByRequestorPrincipal(requestorPrincipal: Principal): async ?Types.Property {
+        let requestorPrincipalText = Principal.toText(requestorPrincipal);
+        return propertiesMap.get(requestorPrincipalText);
+    };
+
+    //Get all properties listed in the system
+    public shared(_) func getAllProperties(): async [Types.Property] {
+        let entries = propertiesMap.entries();
+        let array = Buffer.Buffer<Types.Property>(propertiesMap.size());
+        for ((_, property) in entries) {
+            array.add(property);
+        };
+        return Buffer.toArray(array);
     };
 
     // Function to update the property details, only if the caller is the original lister
